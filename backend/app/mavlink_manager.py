@@ -31,6 +31,8 @@ class MavlinkManager:
 
     def connect(self, endpoint, baud=115200):
         self.disconnect()
+        self.telemetry = {}; self.params = {}; self.param_count = 0; self.last_error = None
+        self.system_id = None; self.component_id = None; self.vehicle_type = None; self.autopilot = None; self.mode = "UNKNOWN"; self.armed = False; self.last_heartbeat = 0
         try:
             master = mavutil.mavlink_connection(endpoint, baud=baud, autoreconnect=True)
             self.master = master
@@ -127,7 +129,7 @@ class MavlinkManager:
 
     def status(self):
         with self.lock:
-            return {"connected": bool(self.connected and self.master), "endpoint": self.endpoint,
+            return {"connected": bool(self.connected and self.master and self.last_heartbeat and time.time()-self.last_heartbeat <= 5), "endpoint": self.endpoint,
                 "system_id": self.system_id, "component_id": self.component_id,
                 "vehicle_type": self.vehicle_type, "autopilot": self.autopilot,
                 "mode": self.mode, "armed": self.armed,
