@@ -2,10 +2,10 @@
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field\nfrom pathlib import Path\nfrom fastapi.responses import FileResponse\nfrom .log_recorder import FlightLogRecorder
 from pymavlink import mavutil
 from .mavlink_manager import MavlinkManager
-manager=MavlinkManager()
+manager=MavlinkManager()\nrecorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
 app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
