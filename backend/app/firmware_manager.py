@@ -69,14 +69,15 @@ class FirmwareManager:
         return files
     def start_flash(self,port,filename,confirm):
         if not confirm:raise ValueError("Explicit flash confirmation required.")
-        if self.flash_state["active"]:raise RuntimeError("Firmware flash already in progress.")
         if not re.match(r"^(COM[1-9][0-9]*|/dev/(ttyACM[0-9]+|ttyUSB[0-9]+|serial/by-id/[A-Za-z0-9_.:-]+))$",port):raise ValueError("Serial port format not allowed.")
         path=self.cache/filename
         if path.parent!=self.cache or not path.is_file() or path.suffix.lower()!=".apj":raise ValueError("Select a downloaded APJ file from the firmware cache.")
-        self.flash_state={"active":True,"stage":"queued","progress":0,"message":"Flash queued","error":None,"result":None}
+        with self.lock:
+            if self.flash_state["active"]:raise RuntimeError("Firmware flash already in progress.")
+            self.flash_state={"active":True,"stage":"queued","progress":0,"message":"Flash queued","error":None,"result":None}
         worker=threading.Thread(target=self._flash_worker,args=(port,path),daemon=True)
         worker.start()
-        return dict(self.flash_state)
+        return self.status()
     def _flash_worker(self,port,path):
         up=None
         try:
