@@ -20,7 +20,7 @@ A ground-control application being built for Team ROXX. This repository is now a
 - Vehicle-specific motor/servo tests and ESC setup wizard are not implemented yet.
 - Mission download editor currently imports coordinate-based navigation commands (waypoint/takeoff/land) into the map; other mission command types are not yet editable in the map editor.
 - Calibration requests are sent; interactive calibration progress and all autopilot-specific workflows still need validation.
-- MAVLink command ACKs and parameter writes are asynchronous; verify results on vehicle and read back critical settings.
+- Flight/calibration command ACKs are awaited up to 3 seconds; parameter writes remain asynchronous with read-back requested. Verify critical values and vehicle behavior.
 - Do not use for flight until validated in the correct SITL, bench/hardware-in-loop and controlled test process.
 
 ## Run on Windows (PowerShell)
