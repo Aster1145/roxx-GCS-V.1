@@ -115,7 +115,7 @@ class MavlinkManager:
                             "sensor_health": msg.onboard_control_sensors_health,
                             "sensor_present": msg.onboard_control_sensors_present})
                     elif typ == "GPS_RAW_INT":
-                        self.telemetry.update({"gps_fix": msg.fix_type, "satellites": msg.satellites_visible,
+                        self.telemetry.update({"gps_fix": msg.fix_type, "satellites": msg.satellites_visible if msg.satellites_visible != 255 else None,
                             "gps_hdop": msg.eph / 100 if msg.eph >= 0 else None})
                     elif typ == "GLOBAL_POSITION_INT":
                         self.telemetry.update({"latitude": msg.lat/1e7, "longitude": msg.lon/1e7,
