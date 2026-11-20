@@ -20,7 +20,8 @@ The backend uses a single receive thread per MAVLink connection. It parses vehic
 - Firmware catalog/download and APJ flashing for MatekH743 target using upstream ArduPilot uploader; target mismatch rejected, flash requires confirmation and closed MAVLink transport
 - HEX download for initial DFU (external STM32CubeProgrammer required)
 - Parameter request/list cache and disarmed parameter writes
-- Mode list from vehicle and mode change requests
+- Mode list from vehicle, mode change requests and ArduCopter FLTMODE1–6 slot configuration
+- RC channel live monitor, frame class/type setup and bounded ArduPilot motor/ESC test controls
 - Calibration command requests for gyro, accelerometer, compass, barometer, radio and airspeed (autopilot-specific validation still needed)
 - Confirmed arm/disarm/land/RTL; takeoff requires armed and GPS 3D fix
 - Map route editor, waypoint/takeoff/land coordinate items, route distance, validation, mission upload/download
