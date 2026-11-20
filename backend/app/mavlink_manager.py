@@ -36,6 +36,7 @@ class MavlinkManager:
     def connect(self, endpoint, baud=115200):
         self.disconnect()
         self.telemetry = {}; self.params = {}; self.param_count = 0; self.last_error = None
+        self.mission_queue = queue.Queue(); self.ack_queue = queue.Queue()
         self.system_id = None; self.component_id = None; self.vehicle_type = None; self.autopilot = None; self.mode = "UNKNOWN"; self.armed = False; self.last_heartbeat = 0
         try:
             master = mavutil.mavlink_connection(endpoint, baud=baud, autoreconnect=True)
