@@ -6,7 +6,7 @@ A ground-control application being built for Team ROXX. Target FC: Matek H743-MI
 - Real MAVLink connection manager (serial endpoints and MAVLink UDP/TCP URIs)
 - Heartbeat and vehicle identification, mode and arming state
 - Live telemetry: GPS, global position, altitude, speed, attitude, battery and system status
-- Flight mode selection using modes reported by the connected vehicle
+- Flight mode selection using modes reported by the connected vehicle, plus ArduCopter FLTMODE1–6 slot configuration\n- RC channel monitor, frame class/type configuration, guarded low-throttle motor test and ESC-calibration request
 - MAVLink parameter list request, parameter cache, parameter write while disarmed, JSON backup/restore
 - Sensor calibration command requests (gyro, accelerometer, compass, pressure, radio and airspeed)
 - Confirmed arm/disarm, takeoff (GPS 3D fix required), land and RTL controls
@@ -19,7 +19,7 @@ A ground-control application being built for Team ROXX. Target FC: Matek H743-MI
 
 ## Current limitations (do not treat as finished flight software)
 - Board-specific firmware download and APJ flash is implemented for Matek H743 Mini V3 ArduCopter, using the upstream ArduPilot uploader and board-ID matching. Initial DFU flashing (HEX) is downloadable but still uses STM32CubeProgrammer externally.
-- Vehicle-specific motor/servo tests and ESC setup wizard are not implemented yet.
+- Motor test is deliberately limited (ArduPilot only, disarmed, max 10% throttle/2 seconds); full motor order/servo output test wizard is not implemented.
 - Mission download editor currently imports coordinate-based navigation commands (waypoint/takeoff/land) into the map; other mission command types are not yet editable in the map editor.
 - Calibration requests are sent; interactive calibration progress and all autopilot-specific workflows still need validation.
 - Flight/calibration command ACKs are awaited up to 3 seconds; parameter writes remain asynchronous with read-back requested. Verify critical values and vehicle behavior.
