@@ -60,9 +60,11 @@ class MavlinkManager:
             self.reader = threading.Thread(target=self.reader_loop, daemon=True)
             self.reader.start()
             self.request_streams()
+            self.request_autopilot_version()
             return self.status()
         except Exception as exc:
             self.last_error = str(exc)
+            self.disconnect()
             raise
 
     def disconnect(self):
