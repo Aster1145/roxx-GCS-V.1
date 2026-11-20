@@ -156,12 +156,13 @@ class MavlinkManager:
 
     def status(self):
         with self.lock:
-            return {"connected": bool(self.connected and self.master and self.last_heartbeat and time.time()-self.last_heartbeat <= 5), "endpoint": self.endpoint,
+            fresh = bool(self.connected and self.master and self.last_heartbeat and time.time()-self.last_heartbeat <= 5)
+            return {"connected": fresh, "heartbeat_fresh": fresh, "endpoint": self.endpoint,
                 "system_id": self.system_id, "component_id": self.component_id,
                 "vehicle_type": self.vehicle_type, "autopilot": self.autopilot,
-                "mode": self.mode, "armed": self.armed,
+                "mode": self.mode if fresh else "LINK LOST", "armed": self.armed,
                 "heartbeat_age_s": round(time.time()-self.last_heartbeat, 1) if self.last_heartbeat else None,
-                "telemetry": dict(self.telemetry), "parameter_count": self.param_count,
+                "telemetry": dict(self.telemetry) if fresh else {}, "parameter_count": self.param_count,
                 "last_error": self.last_error}
 
     def require(self):
