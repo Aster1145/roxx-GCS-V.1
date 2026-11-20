@@ -89,6 +89,7 @@ class FirmwareManager:
             self._set(stage="identified",progress=15,message=f"Bootloader detected board ID {board_type}; APJ board ID {fw_board}")
             # The upstream uploader enforces board compatibility and refuses mismatched images.
             self._set(stage="upload",progress=20,message="Bootloader identified; erase, program, verify and reboot in progress")
+            manager=self
             class ProgressCapture(io.StringIO):
                 def write(inner,text):
                     if text:
@@ -101,7 +102,7 @@ class FirmwareManager:
                         if phase:
                             p=float(match.group(1)) if match else 0
                             mapped={"erase":20+p*.15,"program":35+p*.45,"verify":80+p*.15,"reboot":96}[phase]
-                            self._set(stage=phase,progress=int(mapped),message=phase.title()+" stage: "+str(round(p,1))+"%")
+                            manager._set(stage=phase,progress=int(mapped),message=phase.title()+" stage: "+str(round(p,1))+"%")
                     return len(text)
                 def flush(inner):pass
             with contextlib.redirect_stdout(ProgressCapture()):
