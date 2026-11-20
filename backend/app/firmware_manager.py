@@ -38,8 +38,6 @@ class FirmwareManager:
         if artifact=="apj":
             obj=json.loads(data.decode("utf-8"))
             if not isinstance(obj.get("board_id"),int) or not obj.get("image"):raise ValueError("Firmware APJ metadata is invalid.")
-            image=ap_uploader.firmware.__new__(ap_uploader.firmware)
-            image.desc=obj
             # Fully validate the compressed firmware payload and expected image size.
             import base64,zlib
             decoded=zlib.decompress(base64.b64decode(obj["image"]))
