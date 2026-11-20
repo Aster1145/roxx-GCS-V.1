@@ -5,11 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pathlib import Path
 from fastapi.responses import FileResponse
-from .log_recorder import FlightLogRecorder
+from .log_recorder import FlightLogRecorder\nfrom .firmware_manager import FirmwareManager
 from pymavlink import mavutil
 from .mavlink_manager import MavlinkManager
 manager=MavlinkManager()
-recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
+recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')\nfirmware_manager=FirmwareManager(Path(__file__).resolve().parent.parent/'firmware_cache')
 app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
@@ -30,6 +30,23 @@ class MissionUpload(BaseModel):
     items:list[MissionItem]
 @app.get("/")
 def root():return {"service":"ROXX GCS","version":"0.4.0","telemetry":"real MAVLink"}
+@app.get("/api/firmware/catalog")
+def firmware_catalog(channel:str="stable",variant:str="standard"):
+    try:return firmware_manager.catalog(channel,variant)
+    except Exception as e:raise HTTPException(400,str(e))
+@app.post("/api/firmware/download")
+def firmware_download(req:FirmwareDownloadRequest):
+    try:return firmware_manager.download(req.channel,req.variant,req.artifact)
+    except Exception as e:raise HTTPException(400,str(e))
+@app.get("/api/firmware/files")
+def firmware_files():return {"files":firmware_manager.list_cached()}
+@app.post("/api/firmware/flash")
+def firmware_flash(req:FirmwareFlashRequest):
+    if manager.status()["connected"]:raise HTTPException(400,"Disconnect GCS telemetry link before firmware flashing.")
+    try:return firmware_manager.start_flash(req.port,req.filename,req.confirm)
+    except Exception as e:raise HTTPException(400,str(e))
+@app.get("/api/firmware/flash/status")
+def firmware_flash_status():return firmware_manager.status()
 @app.get("/api/health")
 def health():return {"ok":True,"connected":manager.status()["connected"]}
 @app.get("/api/vehicle/status")
