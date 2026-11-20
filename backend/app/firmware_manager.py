@@ -1,6 +1,8 @@
 """Firmware catalog/download and ArduPilot APJ flash workflow for the Team ROXX FC."""
 import hashlib
 import json
+import io
+import contextlib
 import re
 import threading
 import time
@@ -86,8 +88,24 @@ class FirmwareManager:
             fw_board=int(fw.property("board_id"))
             self._set(stage="identified",progress=15,message=f"Bootloader detected board ID {board_type}; APJ board ID {fw_board}")
             # The upstream uploader enforces board compatibility and refuses mismatched images.
-            self._set(stage="erase",progress=20,message="Erase stage started")
-            up.upload(fw,force=False)
+            self._set(stage="upload",progress=20,message="Bootloader identified; erase, program, verify and reboot in progress")
+            class ProgressCapture(io.StringIO):
+                def write(inner,text):
+                    if text:
+                        phase=None
+                        if "Erase" in text: phase="erase"
+                        elif "Program" in text: phase="program"
+                        elif "Verify" in text: phase="verify"
+                        elif "Rebooting" in text: phase="reboot"
+                        match=re.search(r"(\d+(?:\.\d+)?)%",text)
+                        if phase:
+                            p=float(match.group(1)) if match else 0
+                            mapped={"erase":20+p*.15,"program":35+p*.45,"verify":80+p*.15,"reboot":96}[phase]
+                            self._set(stage=phase,progress=int(mapped),message=phase.title()+" stage: "+str(round(p,1))+"%")
+                    return len(text)
+                def flush(inner):pass
+            with contextlib.redirect_stdout(ProgressCapture()):
+                up.upload(fw,force=False)
             self._set(active=False,stage="complete",progress=100,message="Firmware upload, verification and reboot completed",result={"port":port,"board_id":board_type,"firmware_board_id":fw_board,"filename":path.name})
         except Exception as exc:
             self._set(active=False,stage="failed",progress=0,message="Firmware flash failed",error=str(exc))
