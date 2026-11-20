@@ -18,3 +18,6 @@ API docs: http://localhost:8000/docs
 - TCP: tcp:127.0.0.1:5760
 
 The backend waits for an actual MAVLink heartbeat. No heartbeat means connection fails. This is not a simulated vehicle.
+
+## Firmware updates
+The firmware module is targeted to **Matek H743-MINI V3 / ArduCopter / MatekH743**. Firmware downloads are fetched from the official ArduPilot firmware server. APJ images are validated and cached before upload. APJ flashing uses the vendored upstream ArduPilot uploader, which checks the bootloader board ID and will not force a mismatch. Flash requires the MAVLink transport closed and explicit UI/API confirmation. The initial DFU HEX can be downloaded, but DFU writing is done with STM32CubeProgrammer separately.
