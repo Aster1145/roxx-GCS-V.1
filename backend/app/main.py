@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi.responses import FileResponse
 from .log_recorder import FlightLogRecorder
 from .firmware_manager import FirmwareManager
-from pymavlink import mavutil
+from pymavlink import mavutil\nfrom serial.tools import list_ports
 from .mavlink_manager import MavlinkManager
 manager=MavlinkManager()
 recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
@@ -55,6 +55,10 @@ def firmware_flash(req:FirmwareFlashRequest):
     except Exception as e:raise HTTPException(400,str(e))
 @app.get("/api/firmware/flash/status")
 def firmware_flash_status():return firmware_manager.status()
+@app.get("/api/serial/ports")
+def serial_ports():
+    try:return {"ports":[{"device":p.device,"description":p.description,"hardware_id":p.hwid} for p in list_ports.comports()]}
+    except Exception as e:raise HTTPException(400,str(e))
 @app.get("/api/health")
 def health():return {"ok":True,"connected":manager.status()["connected"]}
 @app.get("/api/vehicle/status")
