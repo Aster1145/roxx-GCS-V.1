@@ -24,6 +24,12 @@ class TakeoffRequest(BaseModel):
     confirm:bool=False; altitude:float=Field(default=10,ge=1,le=120)
 class ModeRequest(BaseModel):
     mode:str
+class FirmwareDownloadRequest(BaseModel):
+    channel:str="stable"; variant:str="standard"; artifact:str="apj"
+class FirmwareFlashRequest(BaseModel):
+    port:str; filename:str; confirm:bool=False
+class MotorTestRequest(BaseModel):
+    motor:int=Field(ge=1,le=8); throttle_pct:float=Field(ge=0,le=10); duration:float=Field(default=1,ge=0.1,le=2); confirm:bool=False
 class MissionItem(BaseModel):
     latitude:float;longitude:float;altitude:float=Field(default=30,ge=1,le=500)
     command:int=16;frame:int=3;current:int=0;autocontinue:int=1
