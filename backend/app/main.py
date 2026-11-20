@@ -2,10 +2,14 @@
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field\nfrom pathlib import Path\nfrom fastapi.responses import FileResponse\nfrom .log_recorder import FlightLogRecorder
+from pydantic import BaseModel, Field
+from pathlib import Path
+from fastapi.responses import FileResponse
+from .log_recorder import FlightLogRecorder
 from pymavlink import mavutil
 from .mavlink_manager import MavlinkManager
-manager=MavlinkManager()\nrecorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
+manager=MavlinkManager()
+recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
 app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
@@ -102,6 +106,22 @@ def upload(req:MissionUpload):
     if len(req.items)>500:raise HTTPException(400,"Mission item limit is 500")
     try:return manager.upload_mission([i.model_dump() for i in req.items])
     except Exception as e:raise HTTPException(400,str(e))
+@app.post("/api/logs/start")
+async def start_log():
+    try:return await recorder.start(manager.status)
+    except Exception as e:raise HTTPException(400,str(e))
+@app.post("/api/logs/stop")
+async def stop_log():
+    try:return await recorder.stop()
+    except Exception as e:raise HTTPException(400,str(e))
+@app.get("/api/logs")
+def list_logs():return {"recording":recorder.recording,"current":recorder.filename,"files":recorder.list_logs()}
+@app.get("/api/logs/{name}/download")
+def download_log(name:str):
+    if "/" in name or "\\" in name or not name.endswith(".jsonl"):raise HTTPException(400,"Invalid log filename")
+    target=recorder.root/name
+    if not target.exists():raise HTTPException(404,"Log not found")
+    return FileResponse(target,media_type="application/json",filename=name)
 @app.get("/api/events")
 def events():return {"events":manager.events}
 @app.websocket("/ws/telemetry")
