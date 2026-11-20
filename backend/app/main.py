@@ -30,7 +30,7 @@ class FirmwareDownloadRequest(BaseModel):
 class FirmwareFlashRequest(BaseModel):
     port:str; filename:str; confirm:bool=False
 class MotorTestRequest(BaseModel):
-    motor:int=Field(ge=1,le=8); throttle_pct:float=Field(ge=0,le=10); duration:float=Field(default=1,ge=0.1,le=2); confirm:bool=False
+    motor:int=Field(ge=1,le=8); throttle_pct:float=Field(ge=0,le=50); duration:float=Field(default=1,ge=0.1,le=15); confirm:bool=False
 class MissionItem(BaseModel):
     latitude:float;longitude:float;altitude:float=Field(default=30,ge=1,le=500)
     command:int=16;frame:int=3;current:int=0;autocontinue:int=1
