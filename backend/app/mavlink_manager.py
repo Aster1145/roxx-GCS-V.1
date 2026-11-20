@@ -237,8 +237,7 @@ class MavlinkManager:
         while not self.mission_queue.empty():
             try: self.mission_queue.get_nowait()
             except queue.Empty: break
-        m.mav.mission_clear_all_send(m.target_system, m.target_component, mav.MAV_MISSION_TYPE_MISSION)
-        time.sleep(.2)
+        # MISSION_COUNT starts a replacement transfer; avoid a separate clear-all ACK race.
         m.mav.mission_count_send(m.target_system, m.target_component, len(items), mav.MAV_MISSION_TYPE_MISSION)
         received = set()
         deadline = time.time() + 25
