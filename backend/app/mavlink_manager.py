@@ -1,5 +1,6 @@
 """Real MAVLink connection manager. This module never fabricates telemetry."""
 import queue
+import math
 import threading
 import time
 from pymavlink import mavutil
@@ -187,6 +188,8 @@ class MavlinkManager:
         m = self.require()
         if self.armed:
             raise RuntimeError("Parameter writes blocked while armed. Disarm the vehicle first.")
+        if not math.isfinite(float(value)):
+            raise ValueError("Parameter value must be a finite number.")
         current = self.params.get(name)
         if current is None:
             raise ValueError("Parameter not loaded. Request/download the parameter list first.")
