@@ -41,3 +41,12 @@ def test_telemetry_recorder_writes_real_status(tmp_path):
     assert file.exists()
     line=json.loads(file.read_text().splitlines()[0])
     assert line["status"]["connected"] is False
+
+def test_firmware_flash_requires_confirmation():
+    r=client.post("/api/firmware/flash",json={"port":"COM5","filename":"not-downloaded.apj","confirm":False})
+    assert r.status_code==400
+    assert "confirmation" in r.text.lower()
+
+def test_firmware_catalog_rejects_unknown_channel():
+    r=client.get("/api/firmware/catalog?channel=bogus&variant=standard")
+    assert r.status_code==400
