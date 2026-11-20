@@ -11,7 +11,7 @@ A ground-control application being built for Team ROXX. This repository is now a
 - Sensor calibration command requests (gyro, accelerometer, compass, pressure, radio and airspeed)
 - Confirmed arm/disarm, takeoff (GPS 3D fix required), land and RTL controls
 - Interactive OpenStreetMap mission editor: add route points, edit altitude/type, upload/download mission, import/export JSON
-- Live system events and autopilot STATUSTEXT feed
+- Live system events and autopilot STATUSTEXT feed\n- Local telemetry recording to JSONL with start/stop/list/download
 - Checklist for vehicle setup and preflight
 
 ## Current limitations (do not treat as finished flight software)
@@ -46,7 +46,7 @@ API documentation: http://127.0.0.1:8000/docs
 ## Connect
 - Serial example: `COM5` (select baud)
 - Linux serial: `/dev/ttyACM0`
-- UDP listener: `udp:127.0.0.1:14550` (verify endpoint convention with sender)
+- UDP listener: `udpin:0.0.0.0:14550` (verify the SITL/vehicle sender port)
 - TCP example: `tcp:127.0.0.1:5760`
 
 Connection is only reported connected after a MAVLink heartbeat is received. **Never connect a real vehicle to test a new command before confirming the endpoint and using a safe test setup.**
