@@ -82,7 +82,7 @@ class MavlinkManager:
     def request_streams(self):
         """Ask MAVLink-capable autopilots for core telemetry rates."""
         if not self.master or not self.connected: return
-        rates = {1:1000000, 24:1000000, 30:250000, 33:500000, 74:1000000, 147:1000000}
+        rates = {1:1000000, 24:1000000, 30:250000, 33:500000, 65:250000, 74:1000000, 147:1000000}
         for message_id, interval_us in rates.items():
             try:
                 self.master.mav.command_long_send(self.master.target_system,self.master.target_component,
@@ -129,6 +129,9 @@ class MavlinkManager:
                             "altitude_m": msg.relative_alt/1000, "absolute_altitude_m": msg.alt/1000,
                             "ground_speed_ms": ((msg.vx**2+msg.vy**2)**.5)/100,
                             "heading_deg": msg.hdg/100 if msg.hdg != 65535 else None})
+                    elif typ == "RC_CHANNELS":
+                        channels=[getattr(msg,"chan"+str(i),None) for i in range(1,19)]
+                        self.telemetry.update({"rc_channels":channels[:msg.chancount],"rc_rssi":msg.rssi})
                     elif typ == "ATTITUDE":
                         self.telemetry.update({"roll_deg": msg.roll*57.2958, "pitch_deg": msg.pitch*57.2958,
                             "yaw_deg": msg.yaw*57.2958})
@@ -232,6 +235,9 @@ class MavlinkManager:
 
     def get_modes(self):
         return list((self.require().mode_mapping() or {}).keys())
+
+    def get_mode_mapping(self):
+        return dict((self.require().mode_mapping() or {}))
 
     def download_mission(self):
         if not self.mission_transfer_lock.acquire(blocking=False): raise RuntimeError("Mission transfer already in progress.")
