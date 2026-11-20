@@ -132,7 +132,7 @@ class MavlinkManager:
                             "yaw_deg": msg.yaw*57.2958})
                     elif typ == "VFR_HUD":
                         self.telemetry.update({"airspeed_ms": msg.airspeed, "ground_speed_ms": msg.groundspeed,
-                            "heading_deg": msg.heading, "altitude_m": msg.alt, "climb_ms": msg.climb})
+                            "heading_deg": msg.heading, "vfr_altitude_m": msg.alt, "climb_ms": msg.climb})
                     elif typ == "BATTERY_STATUS":
                         self.telemetry.update({"battery_remaining": msg.battery_remaining,
                             "battery_current_a": msg.current_battery/100 if msg.current_battery >= 0 else None})
