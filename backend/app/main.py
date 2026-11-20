@@ -63,6 +63,10 @@ def disconnect():manager.disconnect();return {"disconnected":True}
 def modes():
     try:return {"modes":manager.get_modes()}
     except Exception as e:raise HTTPException(400,str(e))
+@app.get("/api/vehicle/mode-map")
+def mode_map():
+    try:return {"mapping":manager.get_mode_mapping()}
+    except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/mode")
 def set_mode(req:ModeRequest):
     try:manager.set_mode(req.mode);return {"requested":req.mode}
@@ -81,11 +85,19 @@ def write_param(name:str,req:ParamWrite):
 def command(req:ConfirmRequest):
     raise HTTPException(400,"Raw command endpoint intentionally disabled; use specific safety-checked controls.")
 @app.post("/api/vehicle/calibration/{kind}")
-def calibration(kind:str):
+def calibration(kind:str,req:ConfirmRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if manager.armed:raise HTTPException(400,"Calibration blocked while armed.")
-    calibration_map={"gyro":[1,0,0,0,0,0,0],"compass":[0,1,0,0,0,0,0],"pressure":[0,0,1,0,0,0,0],"radio":[0,0,0,1,0,0,0],"accelerometer":[0,0,0,0,1,0,0],"airspeed":[0,0,0,0,0,1,0]}
+    calibration_map={"gyro":[1,0,0,0,0,0,0],"compass":[0,1,0,0,0,0,0],"pressure":[0,0,1,0,0,0,0],"radio":[0,0,0,1,0,0,0],"accelerometer":[0,0,0,0,1,0,0],"airspeed":[0,0,0,0,0,1,0],"esc":[0,0,0,0,0,0,1]}
     if kind not in calibration_map:raise HTTPException(404,"Unknown calibration type")
     try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION,calibration_map[kind]);return {"calibration_requested":kind,"ack":ack}
+    except Exception as e:raise HTTPException(400,str(e))
+@app.post("/api/vehicle/motor-test")
+def motor_test(req:MotorTestRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
+    if manager.armed:raise HTTPException(400,"Motor test blocked while armed.")
+    if manager.autopilot!=mavutil.mavlink.MAV_AUTOPILOT_ARDUPILOTMEGA:raise HTTPException(400,"Motor test is restricted to identified ArduPilot vehicles.")
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_DO_MOTOR_TEST,[req.motor,0,req.throttle_pct,req.duration,0,0,0]);return {"motor_test_requested":req.motor,"throttle_pct":req.throttle_pct,"duration_s":req.duration,"ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/arm")
 def arm(req:ConfirmRequest):
