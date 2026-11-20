@@ -66,37 +66,37 @@ def calibration(kind:str):
     if manager.armed:raise HTTPException(400,"Calibration blocked while armed.")
     calibration_map={"gyro":[1,0,0,0,0,0,0],"compass":[0,1,0,0,0,0,0],"pressure":[0,0,1,0,0,0,0],"radio":[0,0,0,1,0,0,0],"accelerometer":[0,0,0,0,1,0,0],"airspeed":[0,0,0,0,0,1,0]}
     if kind not in calibration_map:raise HTTPException(404,"Unknown calibration type")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION,calibration_map[kind]);return {"calibration_requested":kind}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION,calibration_map[kind]);return {"calibration_requested":kind,"ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/arm")
 def arm(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if manager.armed:raise HTTPException(400,"Vehicle is already armed.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[1,0]);return {"requested":"arm"}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[1,0]);return {"requested":"arm","ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/disarm")
 def disarm(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[0,0]);return {"requested":"disarm"}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[0,0]);return {"requested":"disarm","ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/takeoff")
 def takeoff(req:TakeoffRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if not manager.armed:raise HTTPException(400,"Takeoff requires vehicle armed.")
     if manager.telemetry.get("gps_fix",0)<3:raise HTTPException(400,"Takeoff blocked: GPS 3D fix required.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,[0,0,0,0,0,0,req.altitude]);return {"requested":"takeoff","altitude":req.altitude}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,[0,0,0,0,0,0,req.altitude]);return {"requested":"takeoff","altitude":req.altitude,"ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/land")
 def land(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if not manager.armed:raise HTTPException(400,"LAND command requires armed vehicle.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_LAND,[0,0,0,0,0,0,0]);return {"requested":"land"}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_NAV_LAND,[0,0,0,0,0,0,0]);return {"requested":"land","ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/rtl")
 def rtl(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if not manager.armed:raise HTTPException(400,"RTL command requires armed vehicle.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,[0,0,0,0,0,0,0]);return {"requested":"rtl"}
+    try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,[0,0,0,0,0,0,0]);return {"requested":"rtl","ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.get("/api/vehicle/mission/download")
 def download_mission():
