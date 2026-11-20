@@ -175,6 +175,8 @@ class MavlinkManager:
     def require(self):
         if not self.master or not self.connected:
             raise RuntimeError("Vehicle is not connected.")
+        if self.mission_transfer_lock.locked():
+            raise RuntimeError("Mission transfer in progress; other vehicle commands are blocked.")
         if self.last_heartbeat and time.time()-self.last_heartbeat > 5:
             raise RuntimeError("Heartbeat stale (>5 s). Command blocked.")
         return self.master
