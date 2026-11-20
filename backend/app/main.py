@@ -1,5 +1,6 @@
 """ROXX GCS backend API - real MAVLink telemetry and control."""
 import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -10,10 +11,22 @@ from .firmware_manager import FirmwareManager
 from pymavlink import mavutil
 from serial.tools import list_ports
 from .mavlink_manager import MavlinkManager
+from .mavsdk_telemetry import MavsdkTelemetry
+from .nidar import router as nidar_router
 manager=MavlinkManager()
 recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
 firmware_manager=FirmwareManager(Path(__file__).resolve().parent.parent/'firmware_cache')
-app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
+mavsdk_telemetry = MavsdkTelemetry()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        yield
+    finally:
+        await mavsdk_telemetry.stop()
+
+app=FastAPI(title="ROXX Ground Control Station",version="0.4.0", lifespan=lifespan)
+app.include_router(nidar_router)
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
     endpoint:str=Field(min_length=2); baud:int=115200
@@ -176,3 +189,27 @@ async def telemetry(ws:WebSocket):
     try:
         while True:await ws.send_json(manager.status());await asyncio.sleep(.3)
     except WebSocketDisconnect:pass
+
+
+class MavsdkConnectRequest(BaseModel):
+    port: int = Field(default=14540, ge=1, le=65535)
+
+
+@app.post("/api/mavsdk/connect", status_code=202)
+async def mavsdk_connect(req: MavsdkConnectRequest):
+    try:
+        return mavsdk_telemetry.start(req.port)
+    except ImportError as exc:
+        raise HTTPException(503, "Install requirements-mavsdk.txt to enable MAVSDK telemetry.") from exc
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@app.get("/api/mavsdk/status")
+async def mavsdk_status():
+    return mavsdk_telemetry.status()
+
+
+@app.post("/api/mavsdk/disconnect")
+async def mavsdk_disconnect():
+    return await mavsdk_telemetry.stop()
