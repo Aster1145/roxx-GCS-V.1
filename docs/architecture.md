@@ -16,7 +16,7 @@ The backend uses a single receive thread per MAVLink connection. It parses vehic
 - Heartbeat freshness (stale >5 seconds blocks commands and is shown disconnected)
 - Vehicle identifiers, mode, armed state and telemetry status
 - Requests core message streams on connection (GPS, attitude, global position, HUD, battery/status)
-- WebSocket status updates
+- WebSocket status updates\n- Firmware catalog/download and APJ flashing for MatekH743 target using upstream ArduPilot uploader; target mismatch rejected, flash requires confirmation and closed MAVLink transport\n- HEX download for initial DFU (external STM32CubeProgrammer required)
 - Parameter request/list cache and disarmed parameter writes
 - Mode list from vehicle and mode change requests
 - Calibration command requests for gyro, accelerometer, compass, barometer, radio and airspeed (autopilot-specific validation still needed)
@@ -28,7 +28,7 @@ The backend uses a single receive thread per MAVLink connection. It parses vehic
 
 ## Development status / missing functionality
 1. **Vehicle identification and setup wizard:** identify ArduPilot/PX4, vehicle frame, firmware version, sensor status and recommend setup path.
-2. **Firmware management:** firmware download validation, bootloader discovery and flashing are not implemented. Firmware flash cannot be safely universal without the target FC board/bootloader and firmware family.
+2. **Firmware management:** board-specific APJ flashing now works through the upstream uploader. Initial DFU flashing, bootloader recovery, flash progress parsing and SITL/bench validation remain.
 3. **Airframe setup:** frame class/type, motor order/direction, ESC setup and motor-test workflow need FC-specific implementation and safe gating.
 4. **Sensor calibrations:** currently command triggers; interactive progress, calibration result parsing, cancellation and specific FC procedures need development and SITL/hardware validation.
 5. **Radio setup:** channel monitor, input mapping, failsafe values, calibration visual workflow.
