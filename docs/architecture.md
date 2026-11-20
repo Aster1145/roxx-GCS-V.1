@@ -31,9 +31,9 @@ The backend uses a single receive thread per MAVLink connection. It parses vehic
 ## Development status / missing functionality
 1. **Vehicle identification and setup wizard:** identify ArduPilot/PX4, vehicle frame, firmware version, sensor status and recommend setup path.
 2. **Firmware management:** board-specific APJ flashing now works through the upstream uploader. Initial DFU flashing, bootloader recovery and SITL/bench validation remain.
-3. **Airframe setup:** frame class/type, motor order/direction, ESC setup and motor-test workflow need FC-specific implementation and safe gating.
+3. **Airframe setup:** frame class/type and limited motor/ESC test implemented; full motor order/direction test workflow, output mapping and ESC setup wizard remain.
 4. **Sensor calibrations:** currently command triggers; interactive progress, calibration result parsing, cancellation and specific FC procedures need development and SITL/hardware validation.
-5. **Radio setup:** channel monitor, input mapping, failsafe values, calibration visual workflow.
+5. **Radio setup:** channel monitor implemented; input mapping, failsafe values and calibration visual workflow remain.
 6. **Battery setup:** monitor selection, voltage/current calibration and low/critical failsafe profile.
 7. **Failsafe/geofence setup:** dedicated ArduPilot/PX4 parameter presets, readback, validation, restore, and warning logic still need implementation; generic parameter editor is available now.
 8. **Mission editor:** full command catalog, command parameter panels, mission download fidelity for all item types, home/RTL/rally support, terrain-aware altitude, fence editing and mission simulation.
