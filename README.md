@@ -1,6 +1,6 @@
 # ROXX GCS — Team ROXX Ground Control Station
 
-A ground-control application being built for Team ROXX. This repository is now an **actual MAVLink client**, not a fake telemetry demo. The frontend connects to a local FastAPI service; the backend opens a serial/UDP/TCP MAVLink link and requires a vehicle heartbeat. It does not generate aircraft telemetry.
+A ground-control application being built for Team ROXX. Target FC: Matek H743-MINI V3; autopilot: ArduPilot Copter. This repository is now an **actual MAVLink client**, not a fake telemetry demo. The frontend connects to a local FastAPI service; the backend opens a serial/UDP/TCP MAVLink link and requires a vehicle heartbeat. It does not generate aircraft telemetry.
 
 ## Current implementation
 - Real MAVLink connection manager (serial endpoints and MAVLink UDP/TCP URIs)
@@ -16,7 +16,7 @@ A ground-control application being built for Team ROXX. This repository is now a
 - Checklist for vehicle setup and preflight
 
 ## Current limitations (do not treat as finished flight software)
-- Firmware flashing/bootloader recovery is not implemented. This requires FC model, bootloader and firmware-specific support.
+- Board-specific firmware download and APJ flash is implemented for Matek H743 Mini V3 ArduCopter, using the upstream ArduPilot uploader and board-ID matching. Initial DFU flashing (HEX) is downloadable but still uses STM32CubeProgrammer externally.
 - Vehicle-specific motor/servo tests and ESC setup wizard are not implemented yet.
 - Mission download editor currently imports coordinate-based navigation commands (waypoint/takeoff/land) into the map; other mission command types are not yet editable in the map editor.
 - Calibration requests are sent; interactive calibration progress and all autopilot-specific workflows still need validation.
