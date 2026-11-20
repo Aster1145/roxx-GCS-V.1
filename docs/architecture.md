@@ -16,7 +16,9 @@ The backend uses a single receive thread per MAVLink connection. It parses vehic
 - Heartbeat freshness (stale >5 seconds blocks commands and is shown disconnected)
 - Vehicle identifiers, mode, armed state and telemetry status
 - Requests core message streams on connection (GPS, attitude, global position, HUD, battery/status)
-- WebSocket status updates\n- Firmware catalog/download and APJ flashing for MatekH743 target using upstream ArduPilot uploader; target mismatch rejected, flash requires confirmation and closed MAVLink transport\n- HEX download for initial DFU (external STM32CubeProgrammer required)
+- WebSocket status updates
+- Firmware catalog/download and APJ flashing for MatekH743 target using upstream ArduPilot uploader; target mismatch rejected, flash requires confirmation and closed MAVLink transport
+- HEX download for initial DFU (external STM32CubeProgrammer required)
 - Parameter request/list cache and disarmed parameter writes
 - Mode list from vehicle and mode change requests
 - Calibration command requests for gyro, accelerometer, compass, barometer, radio and airspeed (autopilot-specific validation still needed)
