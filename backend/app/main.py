@@ -6,14 +6,16 @@ from pydantic import BaseModel, Field
 from pymavlink import mavutil
 from .mavlink_manager import MavlinkManager
 manager=MavlinkManager()
-app=FastAPI(title="ROXX Ground Control Station",version="0.3.0")
+app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
     endpoint:str=Field(min_length=2); baud:int=115200
 class ParamWrite(BaseModel):
     value:float
-class CommandRequest(BaseModel):
-    command:int; params:list[float]=[]; confirm:bool=False
+class ConfirmRequest(BaseModel):
+    confirm:bool=False
+class TakeoffRequest(BaseModel):
+    confirm:bool=False; altitude:float=Field(default=10,ge=1,le=120)
 class ModeRequest(BaseModel):
     mode:str
 class MissionItem(BaseModel):
@@ -23,7 +25,7 @@ class MissionItem(BaseModel):
 class MissionUpload(BaseModel):
     items:list[MissionItem]
 @app.get("/")
-def root():return {"service":"ROXX GCS","version":"0.3.0","telemetry":"real MAVLink"}
+def root():return {"service":"ROXX GCS","version":"0.4.0","telemetry":"real MAVLink"}
 @app.get("/api/health")
 def health():return {"ok":True,"connected":manager.status()["connected"]}
 @app.get("/api/vehicle/status")
@@ -53,10 +55,8 @@ def write_param(name:str,req:ParamWrite):
     try:manager.set_parameter(name,req.value);return {"requested":name,"value":req.value}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/command")
-def command(req:CommandRequest):
-    if req.command in (400,20,21,22) and not req.confirm:raise HTTPException(400,"Explicit confirmation is required.")
-    try:manager.command_long(req.command,req.params);return {"command_sent":req.command}
-    except Exception as e:raise HTTPException(400,str(e))
+def command(req:ConfirmRequest):
+    raise HTTPException(400,"Raw command endpoint intentionally disabled; use specific safety-checked controls.")
 @app.post("/api/vehicle/calibration/{kind}")
 def calibration(kind:str):
     if manager.armed:raise HTTPException(400,"Calibration blocked while armed.")
@@ -65,25 +65,31 @@ def calibration(kind:str):
     try:manager.command_long(mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION,calibration_map[kind]);return {"calibration_requested":kind}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/arm")
-def arm():
+def arm(req:ConfirmRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if manager.armed:raise HTTPException(400,"Vehicle is already armed.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[1,0]);return {"requested":"arm"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/disarm")
-def disarm():
+def disarm(req:ConfirmRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,[0,0]);return {"requested":"disarm"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/takeoff")
-def takeoff(altitude:float=Field(default=10,ge=1,le=120)):
+def takeoff(req:TakeoffRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     if not manager.armed:raise HTTPException(400,"Takeoff requires vehicle armed.")
-    try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,[0,0,0,0,0,0,altitude]);return {"requested":"takeoff","altitude":altitude}
+    if manager.telemetry.get("gps_fix",0)<3:raise HTTPException(400,"Takeoff blocked: GPS 3D fix required.")
+    try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,[0,0,0,0,0,0,req.altitude]);return {"requested":"takeoff","altitude":req.altitude}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/land")
-def land():
+def land(req:ConfirmRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_LAND,[0,0,0,0,0,0,0]);return {"requested":"land"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/rtl")
-def rtl():
+def rtl(req:ConfirmRequest):
+    if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,[0,0,0,0,0,0,0]);return {"requested":"rtl"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/mission/upload")
