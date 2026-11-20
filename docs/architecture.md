@@ -1,32 +1,56 @@
-# ROXX GCS Architecture (draft)
+# ROXX GCS Architecture & Roadmap
 
-## Current prototype
-React dashboard displays synthetic telemetry. Optional FastAPI WebSocket server emits a synthetic stream. Flight controls are disabled.
-
-## Planned architecture
+## Architecture
 ```
-React Dashboard / Mission Planner / Map / HUD
-                  |
-             REST + WebSocket
-                  |
-         GCS backend / telemetry broker
-            |                 |
-       MAVLink adapter    Companion interface
-            |                 |
-     Flight controller   Raspberry Pi / autonomy / sensors
+React/TypeScript interface (mission, flight deck, setup, params, logs)
+   | HTTP + WebSocket
+FastAPI service (local machine)
+   | pymavlink transport
+Flight controller / MAVLink vehicle
 ```
 
-## Integration phases
-1. Test telemetry contract with simulation.
-2. Add MAVLink only to SITL (software-in-the-loop).
-3. Add heartbeat, stale telemetry, connection status.
-4. Add mission upload/download and validation in SITL.
-5. Hardware-in-loop before controlled field testing.
+The backend uses a single receive thread per MAVLink connection. It parses vehicle messages into a status cache and routes mission-protocol messages through a queue so mission transfer requests are not competing with the telemetry receiver. The local API is intended for development use.
 
-## Safety prerequisites
-- Vehicle identity confirmation
-- Heartbeat watchdog and stale-data warnings
-- Arming checks and explicit confirmation
-- Geofence and mission validation
-- Independent failsafe review
-- Current prototype has no command path.
+## Implemented modules
+- Serial/UDP/TCP endpoint connection with 10-second heartbeat acquisition
+- Heartbeat freshness (stale >5 seconds blocks commands and is shown disconnected)
+- Vehicle identifiers, mode, armed state and telemetry status
+- Requests core message streams on connection (GPS, attitude, global position, HUD, battery/status)
+- WebSocket status updates
+- Parameter request/list cache and disarmed parameter writes
+- Mode list from vehicle and mode change requests
+- Calibration command requests for gyro, accelerometer, compass, barometer, radio and airspeed (autopilot-specific validation still needed)
+- Confirmed arm/disarm/land/RTL; takeoff requires armed and GPS 3D fix
+- Map route editor, waypoint/takeoff/land coordinate items, route distance, validation, mission upload/download
+- JSON mission import/export and parameter backup/restore
+- Local JSON Lines telemetry recording start/stop/list/download
+- Event feed including STATUSTEXT and command acknowledgments
+
+## Development status / missing functionality
+1. **Vehicle identification and setup wizard:** identify ArduPilot/PX4, vehicle frame, firmware version, sensor status and recommend setup path.
+2. **Firmware management:** firmware download validation, bootloader discovery and flashing are not implemented. Firmware flash cannot be safely universal without the target FC board/bootloader and firmware family.
+3. **Airframe setup:** frame class/type, motor order/direction, ESC setup and motor-test workflow need FC-specific implementation and safe gating.
+4. **Sensor calibrations:** currently command triggers; interactive progress, calibration result parsing, cancellation and specific FC procedures need development and SITL/hardware validation.
+5. **Radio setup:** channel monitor, input mapping, failsafe values, calibration visual workflow.
+6. **Battery setup:** monitor selection, voltage/current calibration and low/critical failsafe profile.
+7. **Failsafe/geofence setup:** dedicated ArduPilot/PX4 parameter presets, readback, validation, restore, and warning logic still need implementation; generic parameter editor is available now.
+8. **Mission editor:** full command catalog, command parameter panels, mission download fidelity for all item types, home/RTL/rally support, terrain-aware altitude, fence editing and mission simulation.
+9. **Flight logs:** telemetry JSONL recorder implemented; binary onboard log retrieval and decoding are not implemented.
+10. **Camera/video:** stream discovery, GStreamer/WebRTC, camera metadata and recording integration.
+11. **Autonomy:** companion-computer link, obstacle/depth data, offboard/autonomy state, watchdogs and command arbitration.
+12. **Validation:** unit tests, API tests, SITL integration, HIL, bench and controlled flight test plans.
+
+## Safety design currently in code
+- Commands require a recent heartbeat.
+- UI requires confirmation for flight commands.
+- API confirmation required for arm/disarm/takeoff/land/RTL.
+- Takeoff requires armed and GPS 3D fix.
+- LAND/RTL require armed state.
+- Mission upload, parameter writes and calibration are blocked while armed.
+- Generic raw command endpoint is disabled.
+- These are early safety guards, not flight-certified behavior. Autopilot pre-arm/failsafes remain authoritative.
+
+## Test strategy
+- Python unit tests for MAVLink message parsing, API validation, mission item serialization and log recorder.
+- SITL test against the chosen firmware (ArduPilot or PX4), including lost heartbeat, rejected commands, mission ACK failures and parameter write/readback.
+- HIL/bench checklist before propeller installation; controlled test with team safety procedure after review.
