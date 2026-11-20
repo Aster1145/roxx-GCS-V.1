@@ -26,7 +26,7 @@ def test_empty_mission_is_rejected():
     assert r.status_code==400
 
 def test_calibration_without_vehicle_is_rejected():
-    r=client.post("/api/vehicle/calibration/gyro")
+    r=client.post("/api/vehicle/calibration/gyro",json={"confirm":True})
     assert r.status_code==400
 
 def test_telemetry_recorder_writes_real_status(tmp_path):
@@ -49,4 +49,8 @@ def test_firmware_flash_requires_confirmation():
 
 def test_firmware_catalog_rejects_unknown_channel():
     r=client.get("/api/firmware/catalog?channel=bogus&variant=standard")
+    assert r.status_code==400
+
+def test_motor_test_rejected_without_ardupilot_vehicle():
+    r=client.post("/api/vehicle/motor-test",json={"motor":1,"throttle_pct":5,"duration":1,"confirm":True})
     assert r.status_code==400
