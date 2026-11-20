@@ -54,3 +54,12 @@ def test_firmware_catalog_rejects_unknown_channel():
 def test_motor_test_rejected_without_ardupilot_vehicle():
     r=client.post("/api/vehicle/motor-test",json={"motor":1,"throttle_pct":5,"duration":1,"confirm":True})
     assert r.status_code==400
+
+def test_motor_test_request_limits_accept_new_maxima_and_reject_over_limits():
+    from app.main import MotorTestRequest
+    assert MotorTestRequest(motor=1, throttle_pct=50, duration=15, confirm=True)
+    import pytest
+    with pytest.raises(Exception):
+        MotorTestRequest(motor=1, throttle_pct=50.1, duration=1, confirm=True)
+    with pytest.raises(Exception):
+        MotorTestRequest(motor=1, throttle_pct=10, duration=15.1, confirm=True)
