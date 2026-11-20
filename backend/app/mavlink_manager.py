@@ -172,10 +172,10 @@ class MavlinkManager:
                 "telemetry": dict(self.telemetry) if fresh else {}, "parameter_count": self.param_count,
                 "last_error": self.last_error}
 
-    def require(self):
+    def require(self, allow_mission_transfer=False):
         if not self.master or not self.connected:
             raise RuntimeError("Vehicle is not connected.")
-        if self.mission_transfer_lock.locked():
+        if self.mission_transfer_lock.locked() and not allow_mission_transfer:
             raise RuntimeError("Mission transfer in progress; other vehicle commands are blocked.")
         if self.last_heartbeat and time.time()-self.last_heartbeat > 5:
             raise RuntimeError("Heartbeat stale (>5 s). Command blocked.")
