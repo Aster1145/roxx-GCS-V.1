@@ -117,7 +117,7 @@ class MavlinkManager:
                         self.telemetry["mission_current"] = msg.seq
                     elif typ == "COMMAND_ACK":
                         self.event("ack", f"Command {msg.command} result {msg.result}")
-                    if typ in ("MISSION_REQUEST_INT", "MISSION_REQUEST", "MISSION_ACK", "MISSION_ITEM_INT", "MISSION_ITEM"):
+                    if typ in ("MISSION_REQUEST_INT", "MISSION_REQUEST", "MISSION_ACK", "MISSION_ITEM_INT", "MISSION_ITEM", "MISSION_COUNT"):
                         self.mission_queue.put(msg)
                     self.telemetry["updated_at"] = time.time()
             except Exception as exc:
@@ -176,6 +176,44 @@ class MavlinkManager:
 
     def get_modes(self):
         return list((self.require().mode_mapping() or {}).keys())
+
+    def download_mission(self):
+        m = self.require()
+        mav = mavutil.mavlink
+        while not self.mission_queue.empty():
+            try: self.mission_queue.get_nowait()
+            except queue.Empty: break
+        m.mav.mission_request_list_send(m.target_system, m.target_component, mav.MAV_MISSION_TYPE_MISSION)
+        deadline = time.time() + 10
+        count = None
+        while time.time() < deadline:
+            try: msg = self.mission_queue.get(timeout=.75)
+            except queue.Empty: continue
+            if msg.get_type() == "MISSION_COUNT":
+                count = int(msg.count); break
+        if count is None: raise TimeoutError("Vehicle did not return mission count.")
+        if count > 500: raise RuntimeError("Vehicle mission exceeds safety limit (500 items).")
+        result = []
+        for seq in range(count):
+            m.mav.mission_request_int_send(m.target_system, m.target_component, seq, mav.MAV_MISSION_TYPE_MISSION)
+            deadline = time.time() + 8
+            item = None
+            while time.time() < deadline:
+                try: msg = self.mission_queue.get(timeout=.75)
+                except queue.Empty: continue
+                if msg.get_type() not in ("MISSION_ITEM_INT", "MISSION_ITEM"): continue
+                if int(msg.seq) != seq: continue
+                item = msg; break
+            if item is None: raise TimeoutError(f"Mission item {seq} download timed out.")
+            is_int = item.get_type() == "MISSION_ITEM_INT"
+            x = item.x / 1e7 if is_int else item.x
+            y = item.y / 1e7 if is_int else item.y
+            result.append({"seq":seq,"latitude":x,"longitude":y,"altitude":item.z,
+                "command":item.command,"frame":item.frame,"current":item.current,
+                "autocontinue":item.autocontinue,"param1":item.param1,"param2":item.param2,
+                "param3":item.param3,"param4":item.param4})
+        self.event("success", f"Downloaded vehicle mission ({count} items)")
+        return {"count":count,"items":result}
 
     def upload_mission(self, items):
         m = self.require()
