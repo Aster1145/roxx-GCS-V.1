@@ -130,7 +130,7 @@ class MavlinkManager:
                             "ground_speed_ms": ((msg.vx**2+msg.vy**2)**.5)/100,
                             "heading_deg": msg.hdg/100 if msg.hdg != 65535 else None})
                     elif typ == "RC_CHANNELS":
-                        channels=[getattr(msg,"chan"+str(i),None) for i in range(1,19)]
+                        channels=[getattr(msg,"chan"+str(i)+"_raw",None) for i in range(1,19)]
                         self.telemetry.update({"rc_channels":channels[:msg.chancount],"rc_rssi":msg.rssi})
                     elif typ == "ATTITUDE":
                         self.telemetry.update({"roll_deg": msg.roll*57.2958, "pitch_deg": msg.pitch*57.2958,
