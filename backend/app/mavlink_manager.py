@@ -161,7 +161,7 @@ class MavlinkManager:
     def status(self):
         with self.lock:
             fresh = bool(self.connected and self.master and self.last_heartbeat and time.time()-self.last_heartbeat <= 5)
-            return {"connected": fresh, "heartbeat_fresh": fresh, "endpoint": self.endpoint,
+            return {"connected": fresh, "heartbeat_fresh": fresh, "transport_open": bool(self.master), "endpoint": self.endpoint,
                 "system_id": self.system_id, "component_id": self.component_id,
                 "vehicle_type": self.vehicle_type, "autopilot": self.autopilot,
                 "mode": self.mode if fresh else "LINK LOST", "armed": self.armed,
