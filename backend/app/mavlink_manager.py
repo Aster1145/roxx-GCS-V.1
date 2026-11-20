@@ -105,7 +105,10 @@ class MavlinkManager:
                         self.mode = mavutil.mode_string_v10(msg)
                         self.armed = bool(msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
                         self.vehicle_type, self.autopilot = msg.type, msg.autopilot
-                    elif typ == "AUTOPILOT_VERSION":\n                        v = int(msg.flight_sw_version)\n                        self.telemetry.update({"firmware_version": f"{(v>>24)&255}.{(v>>16)&255}.{(v>>8)&255}", "firmware_vendor_id": msg.vendor_id, "firmware_product_id": msg.product_id, "capabilities": msg.capabilities})\n                    elif typ == "SYS_STATUS":
+                    elif typ == "AUTOPILOT_VERSION":
+                        v = int(msg.flight_sw_version)
+                        self.telemetry.update({"firmware_version": f"{(v>>24)&255}.{(v>>16)&255}.{(v>>8)&255}", "firmware_vendor_id": msg.vendor_id, "firmware_product_id": msg.product_id, "capabilities": msg.capabilities})
+                    elif typ == "SYS_STATUS":
                         self.telemetry.update({
                             "battery_voltage": msg.voltage_battery / 1000 if msg.voltage_battery >= 0 else None,
                             "battery_remaining": msg.battery_remaining if msg.battery_remaining >= 0 else None,
