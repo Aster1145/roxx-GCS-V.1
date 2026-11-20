@@ -83,6 +83,14 @@ class MavlinkManager:
             except Exception as exc:
                 self.event("warning", f"Telemetry rate request for message {message_id} failed: {exc}")
         self.event("info", "Requested core MAVLink telemetry streams")
+    def request_autopilot_version(self):
+        if not self.master or not self.connected: return
+        try:
+            self.master.mav.command_long_send(self.master.target_system,self.master.target_component,
+                mavutil.mavlink.MAV_CMD_REQUEST_MESSAGE,0,mavutil.mavlink.MAVLINK_MSG_ID_AUTOPILOT_VERSION,0,0,0,0,0,0)
+            self.event("info", "Requested autopilot firmware/version information")
+        except Exception as exc:
+            self.event("warning", f"Autopilot version request failed: {exc}")
     def reader_loop(self):
         while self.master is not None:
             try:
@@ -97,7 +105,7 @@ class MavlinkManager:
                         self.mode = mavutil.mode_string_v10(msg)
                         self.armed = bool(msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
                         self.vehicle_type, self.autopilot = msg.type, msg.autopilot
-                    elif typ == "SYS_STATUS":
+                    elif typ == "AUTOPILOT_VERSION":\n                        v = int(msg.flight_sw_version)\n                        self.telemetry.update({"firmware_version": f"{(v>>24)&255}.{(v>>16)&255}.{(v>>8)&255}", "firmware_vendor_id": msg.vendor_id, "firmware_product_id": msg.product_id, "capabilities": msg.capabilities})\n                    elif typ == "SYS_STATUS":
                         self.telemetry.update({
                             "battery_voltage": msg.voltage_battery / 1000 if msg.voltage_battery >= 0 else None,
                             "battery_remaining": msg.battery_remaining if msg.battery_remaining >= 0 else None,
