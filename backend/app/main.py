@@ -89,11 +89,13 @@ def takeoff(req:TakeoffRequest):
 @app.post("/api/vehicle/land")
 def land(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
+    if not manager.armed:raise HTTPException(400,"LAND command requires armed vehicle.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_LAND,[0,0,0,0,0,0,0]);return {"requested":"land"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/rtl")
 def rtl(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
+    if not manager.armed:raise HTTPException(400,"RTL command requires armed vehicle.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,[0,0,0,0,0,0,0]);return {"requested":"rtl"}
     except Exception as e:raise HTTPException(400,str(e))
 @app.get("/api/vehicle/mission/download")
