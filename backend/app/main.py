@@ -110,6 +110,7 @@ def upload(req:MissionUpload):
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/logs/start")
 async def start_log():
+    if not manager.status()["connected"]:raise HTTPException(400,"Connect to a real vehicle before recording telemetry.")
     try:return await recorder.start(manager.status)
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/logs/stop")
