@@ -101,6 +101,7 @@ def calibration(kind:str,req:ConfirmRequest):
     if manager.armed:raise HTTPException(400,"Calibration blocked while armed.")
     calibration_map={"gyro":[1,0,0,0,0,0,0],"compass":[0,1,0,0,0,0,0],"pressure":[0,0,1,0,0,0,0],"radio":[0,0,0,1,0,0,0],"accelerometer":[0,0,0,0,1,0,0],"airspeed":[0,0,0,0,0,1,0],"esc":[0,0,0,0,0,0,1]}
     if kind not in calibration_map:raise HTTPException(404,"Unknown calibration type")
+    if kind=="esc" and manager.autopilot!=mavutil.mavlink.MAV_AUTOPILOT_ARDUPILOTMEGA:raise HTTPException(400,"ESC calibration is restricted to identified ArduPilot vehicles.")
     try:ack=manager.command_long(mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION,calibration_map[kind]);return {"calibration_requested":kind,"ack":ack}
     except Exception as e:raise HTTPException(400,str(e))
 @app.post("/api/vehicle/motor-test")
