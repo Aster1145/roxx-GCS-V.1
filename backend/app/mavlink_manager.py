@@ -23,7 +23,8 @@ class MavlinkManager:
         self.events = []
         self.last_error = None
         self.endpoint = None
-        self.mission_queue = queue.Queue()\n        self.ack_queue = queue.Queue()
+        self.mission_queue = queue.Queue()
+        self.ack_queue = queue.Queue()
 
     def event(self, level, message):
         self.events.insert(0, {"time": time.time(), "level": level, "message": str(message)})
