@@ -73,3 +73,11 @@ ArduPilot / PX4 / MAVLink-compatible FC (compatibility must be tested)
 
 ## Build status
 See [architecture and development roadmap](docs/architecture.md). Hardware-specific behavior should be verified against the team's flight-controller/autopilot, firmware and vehicle configuration before implementation of further setup workflows.
+
+## Backend checks
+Run tests from the backend folder:
+```powershell
+cd backend
+pytest
+```
+The tests cover API safety gates and local log recording. They do not validate flight hardware or autopilot-specific command behavior.
