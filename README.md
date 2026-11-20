@@ -84,3 +84,7 @@ cd backend
 pytest
 ```
 The tests cover API safety gates and local log recording. They do not validate flight hardware or autopilot-specific command behavior.
+
+## NIDAR AirMouse
+
+See [the offline indoor mission console and ROS 2 integration guide](docs/nidar.md).
