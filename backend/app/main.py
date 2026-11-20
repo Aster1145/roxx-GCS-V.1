@@ -5,11 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pathlib import Path
 from fastapi.responses import FileResponse
-from .log_recorder import FlightLogRecorder\nfrom .firmware_manager import FirmwareManager
+from .log_recorder import FlightLogRecorder
+from .firmware_manager import FirmwareManager
 from pymavlink import mavutil
 from .mavlink_manager import MavlinkManager
 manager=MavlinkManager()
-recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')\nfirmware_manager=FirmwareManager(Path(__file__).resolve().parent.parent/'firmware_cache')
+recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
+firmware_manager=FirmwareManager(Path(__file__).resolve().parent.parent/'firmware_cache')
 app=FastAPI(title="ROXX Ground Control Station",version="0.4.0")
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 class ConnectRequest(BaseModel):
