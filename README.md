@@ -11,7 +11,8 @@ A ground-control application being built for Team ROXX. This repository is now a
 - Sensor calibration command requests (gyro, accelerometer, compass, pressure, radio and airspeed)
 - Confirmed arm/disarm, takeoff (GPS 3D fix required), land and RTL controls
 - Interactive OpenStreetMap mission editor: add route points, edit altitude/type, upload/download mission, import/export JSON
-- Live system events and autopilot STATUSTEXT feed\n- Local telemetry recording to JSONL with start/stop/list/download
+- Live system events and autopilot STATUSTEXT feed
+- Local telemetry recording to JSONL with start/stop/list/download
 - Checklist for vehicle setup and preflight
 
 ## Current limitations (do not treat as finished flight software)
