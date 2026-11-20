@@ -56,6 +56,7 @@ class MavlinkManager:
             self.event("success", f"Vehicle heartbeat received (sys {self.system_id}, comp {self.component_id})")
             self.reader = threading.Thread(target=self.reader_loop, daemon=True)
             self.reader.start()
+            self.request_streams()
             return self.status()
         except Exception as exc:
             self.last_error = str(exc)
@@ -71,6 +72,17 @@ class MavlinkManager:
             except Exception:
                 pass
 
+    def request_streams(self):
+        """Ask MAVLink-capable autopilots for core telemetry rates."""
+        if not self.master or not self.connected: return
+        rates = {1:1000000, 24:1000000, 30:250000, 33:500000, 74:1000000, 147:1000000}
+        for message_id, interval_us in rates.items():
+            try:
+                self.master.mav.command_long_send(self.master.target_system,self.master.target_component,
+                    mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL,0,message_id,interval_us,0,0,0,0,0)
+            except Exception as exc:
+                self.event("warning", f"Telemetry rate request for message {message_id} failed: {exc}")
+        self.event("info", "Requested core MAVLink telemetry streams")
     def reader_loop(self):
         while self.master is not None:
             try:
