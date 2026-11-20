@@ -259,6 +259,16 @@ class MavlinkManager:
                 if msg.get_type() not in ("MISSION_ITEM_INT", "MISSION_ITEM"): continue
                 if int(msg.seq) != seq: continue
                 item = msg; break
+            if item is None:
+                # Compatibility fallback for vehicles that only support legacy MISSION_ITEM requests.
+                m.mav.mission_request_send(m.target_system, m.target_component, seq, mav.MAV_MISSION_TYPE_MISSION)
+                deadline = time.time() + 8
+                while time.time() < deadline:
+                    try: msg = self.mission_queue.get(timeout=.75)
+                    except queue.Empty: continue
+                    if msg.get_type() not in ("MISSION_ITEM_INT", "MISSION_ITEM"): continue
+                    if int(msg.seq) != seq: continue
+                    item = msg; break
             if item is None: raise TimeoutError(f"Mission item {seq} download timed out.")
             is_int = item.get_type() == "MISSION_ITEM_INT"
             x = item.x / 1e7 if is_int else item.x
