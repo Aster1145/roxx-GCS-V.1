@@ -25,6 +25,8 @@ class MavlinkManager:
         self.endpoint = None
         self.mission_queue = queue.Queue()
         self.ack_queue = queue.Queue()
+        self.command_lock = threading.Lock()
+        self.mission_transfer_lock = threading.Lock()
 
     def event(self, level, message):
         self.events.insert(0, {"time": time.time(), "level": level, "message": str(message)})
@@ -190,6 +192,10 @@ class MavlinkManager:
         self.event("info", f"Parameter set requested and read-back requested: {name}={value}")
 
     def command_long(self, command, params=None, wait_ack=True):
+        with self.command_lock:
+            return self._command_long(command, params, wait_ack)
+
+    def _command_long(self, command, params=None, wait_ack=True):
         m = self.require()
         while not self.ack_queue.empty():
             try: self.ack_queue.get_nowait()
@@ -221,6 +227,11 @@ class MavlinkManager:
         return list((self.require().mode_mapping() or {}).keys())
 
     def download_mission(self):
+        if not self.mission_transfer_lock.acquire(blocking=False): raise RuntimeError("Mission transfer already in progress.")
+        try: return self._download_mission()
+        finally: self.mission_transfer_lock.release()
+
+    def _download_mission(self):
         m = self.require()
         mav = mavutil.mavlink
         while not self.mission_queue.empty():
@@ -259,6 +270,11 @@ class MavlinkManager:
         return {"count":count,"items":result}
 
     def upload_mission(self, items):
+        if not self.mission_transfer_lock.acquire(blocking=False): raise RuntimeError("Mission transfer already in progress.")
+        try: return self._upload_mission(items)
+        finally: self.mission_transfer_lock.release()
+
+    def _upload_mission(self, items):
         m = self.require()
         mav = mavutil.mavlink
         if self.armed:
