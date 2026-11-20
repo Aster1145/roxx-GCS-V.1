@@ -23,7 +23,7 @@ class MavlinkManager:
         self.events = []
         self.last_error = None
         self.endpoint = None
-        self.mission_queue = queue.Queue()
+        self.mission_queue = queue.Queue()\n        self.ack_queue = queue.Queue()
 
     def event(self, level, message):
         self.events.insert(0, {"time": time.time(), "level": level, "message": str(message)})
@@ -142,6 +142,7 @@ class MavlinkManager:
                         self.telemetry["mission_current"] = msg.seq
                     elif typ == "COMMAND_ACK":
                         self.event("ack", f"Command {msg.command} result {msg.result}")
+                        self.ack_queue.put(msg)
                     if typ in ("MISSION_REQUEST_INT", "MISSION_REQUEST", "MISSION_ACK", "MISSION_ITEM_INT", "MISSION_ITEM", "MISSION_COUNT"):
                         self.mission_queue.put(msg)
                     self.telemetry["updated_at"] = time.time()
@@ -187,10 +188,25 @@ class MavlinkManager:
         m.mav.param_request_read_send(m.target_system, m.target_component, name.encode(), -1)
         self.event("info", f"Parameter set requested and read-back requested: {name}={value}")
 
-    def command_long(self, command, params=None):
+    def command_long(self, command, params=None, wait_ack=True):
         m = self.require()
+        while not self.ack_queue.empty():
+            try: self.ack_queue.get_nowait()
+            except queue.Empty: break
         vals = list(params or []) + [0] * 7
         m.mav.command_long_send(m.target_system, m.target_component, int(command), 0, *[float(v) for v in vals[:7]])
+        if not wait_ack: return None
+        deadline = time.time() + 3
+        while time.time() < deadline:
+            try: ack = self.ack_queue.get(timeout=.5)
+            except queue.Empty: continue
+            if int(ack.command) != int(command): continue
+            if ack.result not in (mavutil.mavlink.MAV_RESULT_ACCEPTED, mavutil.mavlink.MAV_RESULT_IN_PROGRESS):
+                raise RuntimeError(f"Vehicle rejected command {command}: ACK result {ack.result}")
+            self.event("success", f"Vehicle acknowledged command {command} (result {ack.result})")
+            return {"command": int(ack.command), "result": int(ack.result)}
+        self.event("warning", f"No ACK received for command {command} within 3 seconds")
+        return None
 
     def set_mode(self, mode):
         m = self.require()
