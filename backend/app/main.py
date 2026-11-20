@@ -7,7 +7,8 @@ from pathlib import Path
 from fastapi.responses import FileResponse
 from .log_recorder import FlightLogRecorder
 from .firmware_manager import FirmwareManager
-from pymavlink import mavutil\nfrom serial.tools import list_ports
+from pymavlink import mavutil
+from serial.tools import list_ports
 from .mavlink_manager import MavlinkManager
 manager=MavlinkManager()
 recorder=FlightLogRecorder(Path(__file__).resolve().parent.parent/'logs')
