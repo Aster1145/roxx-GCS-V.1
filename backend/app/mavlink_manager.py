@@ -247,7 +247,7 @@ class MavlinkManager:
         finally: self.mission_transfer_lock.release()
 
     def _download_mission(self):
-        m = self.require()
+        m = self.require(allow_mission_transfer=True)
         mav = mavutil.mavlink
         while not self.mission_queue.empty():
             try: self.mission_queue.get_nowait()
@@ -300,7 +300,7 @@ class MavlinkManager:
         finally: self.mission_transfer_lock.release()
 
     def _upload_mission(self, items):
-        m = self.require()
+        m = self.require(allow_mission_transfer=True)
         mav = mavutil.mavlink
         if self.armed:
             raise RuntimeError("Mission upload blocked while armed. Disarm before uploading.")
