@@ -136,7 +136,7 @@ class MavlinkManager:
                         self.telemetry.update({"airspeed_ms": msg.airspeed, "ground_speed_ms": msg.groundspeed,
                             "heading_deg": msg.heading, "vfr_altitude_m": msg.alt, "climb_ms": msg.climb})
                     elif typ == "BATTERY_STATUS":
-                        self.telemetry.update({"battery_remaining": msg.battery_remaining,
+                        self.telemetry.update({"battery_remaining": msg.battery_remaining if msg.battery_remaining >= 0 else None,
                             "battery_current_a": msg.current_battery/100 if msg.current_battery >= 0 else None})
                     elif typ == "STATUSTEXT":
                         self.event("status", msg.text.strip())
