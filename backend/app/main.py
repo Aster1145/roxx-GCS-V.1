@@ -42,7 +42,7 @@ def firmware_download(req:FirmwareDownloadRequest):
 def firmware_files():return {"files":firmware_manager.list_cached()}
 @app.post("/api/firmware/flash")
 def firmware_flash(req:FirmwareFlashRequest):
-    if manager.status()["connected"]:raise HTTPException(400,"Disconnect GCS telemetry link before firmware flashing.")
+    if manager.master is not None:raise HTTPException(400,"Close the GCS serial/telemetry transport before firmware flashing.")
     try:return firmware_manager.start_flash(req.port,req.filename,req.confirm)
     except Exception as e:raise HTTPException(400,str(e))
 @app.get("/api/firmware/flash/status")
