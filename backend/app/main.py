@@ -92,7 +92,7 @@ def rtl(req:ConfirmRequest):
     if not req.confirm:raise HTTPException(400,"Explicit operator confirmation required.")
     try:manager.command_long(mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,[0,0,0,0,0,0,0]);return {"requested":"rtl"}
     except Exception as e:raise HTTPException(400,str(e))
-@app.post("/api/vehicle/mission/upload")
+@app.get("/api/vehicle/mission/download")\ndef download_mission():\n    try:return manager.download_mission()\n    except Exception as e:raise HTTPException(400,str(e))\n@app.post("/api/vehicle/mission/upload")
 def upload(req:MissionUpload):
     if not req.items:raise HTTPException(400,"Mission plan is empty")
     if len(req.items)>500:raise HTTPException(400,"Mission item limit is 500")
