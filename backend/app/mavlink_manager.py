@@ -184,7 +184,8 @@ class MavlinkManager:
         if current is None:
             raise ValueError("Parameter not loaded. Request/download the parameter list first.")
         m.mav.param_set_send(m.target_system, m.target_component, name.encode(), float(value), current["type"])
-        self.event("info", f"Parameter set requested: {name}={value}")
+        m.mav.param_request_read_send(m.target_system, m.target_component, name.encode(), -1)
+        self.event("info", f"Parameter set requested and read-back requested: {name}={value}")
 
     def command_long(self, command, params=None):
         m = self.require()
