@@ -13,7 +13,9 @@ A ground-control application being built for Team ROXX. Target FC: Matek H743-MI
 - Interactive OpenStreetMap mission editor: add route points, edit altitude/type, upload/download mission, import/export JSON
 - Live system events and autopilot STATUSTEXT feed
 - Local telemetry recording to JSONL with start/stop/list/download
-- Board-specific firmware catalog/download and guarded APJ flashing for Matek H743 Mini V3 (ArduCopter target), with board-ID validation and erase/program/verify status\n- HEX download for initial DFU, with external STM32CubeProgrammer required\n- Checklist for vehicle setup and preflight
+- Board-specific firmware catalog/download and guarded APJ flashing for Matek H743 Mini V3 (ArduCopter target), with board-ID validation and erase/program/verify status
+- HEX download for initial DFU, with external STM32CubeProgrammer required
+- Checklist for vehicle setup and preflight
 
 ## Current limitations (do not treat as finished flight software)
 - Board-specific firmware download and APJ flash is implemented for Matek H743 Mini V3 ArduCopter, using the upstream ArduPilot uploader and board-ID matching. Initial DFU flashing (HEX) is downloadable but still uses STM32CubeProgrammer externally.
