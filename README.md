@@ -6,7 +6,8 @@ A ground-control application being built for Team ROXX. Target FC: Matek H743-MI
 - Real MAVLink connection manager (serial endpoints and MAVLink UDP/TCP URIs)
 - Heartbeat and vehicle identification, mode and arming state
 - Live telemetry: GPS, global position, altitude, speed, attitude, battery and system status
-- Flight mode selection using modes reported by the connected vehicle, plus ArduCopter FLTMODE1–6 slot configuration\n- RC channel monitor, frame class/type configuration, guarded low-throttle motor test and ESC-calibration request
+- Flight mode selection using modes reported by the connected vehicle, plus ArduCopter FLTMODE1–6 slot configuration
+- RC channel monitor, frame class/type configuration, guarded low-throttle motor test and ESC-calibration request
 - MAVLink parameter list request, parameter cache, parameter write while disarmed, JSON backup/restore
 - Sensor calibration command requests (gyro, accelerometer, compass, pressure, radio and airspeed)
 - Confirmed arm/disarm, takeoff (GPS 3D fix required), land and RTL controls
